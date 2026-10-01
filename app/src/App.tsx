@@ -2,11 +2,11 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { PageLoading, Toaster } from './components/ui';
 import { isConfigured } from './lib/supabase';
-import Download from './pages/Download';
-import Home from './pages/Home';
 import NotFound from './pages/NotFound';
 import StorePage from './pages/buyer/StorePage';
 
+const Home = lazy(() => import('./pages/Home'));
+const Download = lazy(() => import('./pages/Download'));
 const CheckoutPage = lazy(() => import('./pages/buyer/CheckoutPage'));
 const TrackPage = lazy(() => import('./pages/buyer/TrackPage'));
 const MyOrdersPage = lazy(() => import('./pages/buyer/MyOrdersPage'));
@@ -38,11 +38,13 @@ export default function App() {
     return (
       <BrowserRouter>
         <Toaster />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/download" element={<Download />} />
-          <Route path="*" element={<NotConfigured />} />
-        </Routes>
+        <Suspense fallback={<PageLoading />}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/download" element={<Download />} />
+            <Route path="*" element={<NotConfigured />} />
+          </Routes>
+        </Suspense>
       </BrowserRouter>
     );
   }

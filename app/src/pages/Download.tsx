@@ -35,7 +35,7 @@ export default function Download() {
       <div className="-mt-10 space-y-4 px-4">
         <section className="card p-5 shadow-sm">
           <InstallButton className="btn-primary w-full py-3.5 text-base" label="Download / Install aplikasi" />
-          <p className="mt-3 text-center text-xs text-stone-500">Gratis • &lt;1 MB • tanpa Play Store • otomatis selalu terbaru</p>
+          <p className="mt-3 text-center text-xs text-stone-500">Gratis • &lt;1 MB • otomatis selalu terbaru</p>
         </section>
 
         <section className="grid grid-cols-2 gap-3">

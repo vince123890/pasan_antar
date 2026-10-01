@@ -31,13 +31,20 @@ export const maxCoverageKm = (tiers: Tier[]) => sortTiers(tiers).at(-1)?.to_km ?
 /** Perhitungan untuk tampilan. Server (calc_delivery_fee) tetap yang menentukan. */
 export function calcDeliveryFee(cfg: DeliveryConfig, to: LatLng, subtotal: number): FeeResult {
   const distanceKm = round1(haversineKm(cfg.lat, cfg.lng, to.lat, to.lng) * Number(cfg.road_factor));
-  const tiers = sortTiers(cfg.tiers);
+  return feeForDistance(cfg.tiers, distanceKm, subtotal, cfg.free_delivery_min_order);
+}
+
+/** Aturan tarif untuk jarak tempuh yang sudah diketahui (dipakai juga oleh simulator di landing page). */
+export function feeForDistance(
+  tiersIn: Tier[], distanceKm: number, subtotal = 0, freeDeliveryMinOrder: number | null = null,
+): FeeResult {
+  const tiers = sortTiers(tiersIn);
   const tier = tiers.find(
     t => (distanceKm > Number(t.from_km) && distanceKm <= Number(t.to_km)) || (distanceKm === 0 && Number(t.from_km) === 0),
   );
   if (!tier) return { inCoverage: false, distanceKm, maxKm: maxCoverageKm(tiers) };
 
-  const freeByMinOrder = cfg.free_delivery_min_order != null && subtotal >= cfg.free_delivery_min_order;
+  const freeByMinOrder = freeDeliveryMinOrder != null && subtotal >= freeDeliveryMinOrder;
   const fee = freeByMinOrder
     ? 0
     : tier.fee_type === 'free'

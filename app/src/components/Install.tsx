@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { detectPlatform, isIosNonSafari, promptInstall, useInstall, type Platform } from '../lib/install';
 import { getPref, setPref } from '../lib/local';
+import { Icon } from './Icon';
 import { Sheet, toast } from './ui';
 
 /** Tombol "Install aplikasi": prompt langsung bila didukung, selain itu tampilkan panduan. */
@@ -22,7 +23,7 @@ export function InstallButton({ className = 'btn-primary', label = 'Install apli
 
   return (
     <>
-      <button className={className} onClick={onClick}>⬇ {label}</button>
+      <button className={className} onClick={onClick}><Icon name="download" className="h-[1.1em] w-[1.1em]" /> {label}</button>
       <Sheet open={guide} onClose={() => setGuide(false)} title="Pasang aplikasi">
         <InstallSteps platform={detectPlatform()} />
       </Sheet>
@@ -66,7 +67,7 @@ export function InstallSteps({ platform }: { platform: Platform }) {
         ))}
       </ol>
       <p className="mt-4 text-xs text-stone-500">
-        Ukuran kecil (&lt;1 MB), tidak perlu Play Store, dan selalu versi terbaru.
+        Ukuran kecil (&lt;1 MB) dan otomatis selalu versi terbaru.
       </p>
     </div>
   );
