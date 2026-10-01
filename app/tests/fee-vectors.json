@@ -1,0 +1,8 @@
+[
+  { "name": "0 km (sebelah toko) → gratis",            "straight_km": 0,    "expected": { "distance_km": 0,    "in_coverage": true,  "fee": 0 } },
+  { "name": "3 km → 3.9 km → gratis",                  "straight_km": 3,    "expected": { "distance_km": 3.9,  "in_coverage": true,  "fee": 0 } },
+  { "name": "3.84 km → 5.0 km (batas atas inklusif)",  "straight_km": 3.84, "expected": { "distance_km": 5.0,  "in_coverage": true,  "fee": 0 } },
+  { "name": "4 km → 5.2 km → flat 1.000",              "straight_km": 4,    "expected": { "distance_km": 5.2,  "in_coverage": true,  "fee": 1000 } },
+  { "name": "8 km → 10.4 km → 11 × 2.000",             "straight_km": 8,    "expected": { "distance_km": 10.4, "in_coverage": true,  "fee": 22000 } },
+  { "name": "12 km → 15.6 km → di luar jangkauan",     "straight_km": 12,   "expected": { "distance_km": 15.6, "in_coverage": false, "fee": 0 } }
+]
