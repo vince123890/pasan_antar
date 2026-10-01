@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { PageLoading, Toaster } from './components/ui';
 import { isConfigured } from './lib/supabase';
+import Download from './pages/Download';
 import Home from './pages/Home';
 import NotFound from './pages/NotFound';
 import StorePage from './pages/buyer/StorePage';
@@ -32,13 +33,26 @@ function NotConfigured() {
 }
 
 export default function App() {
-  if (!isConfigured) return <NotConfigured />;
+  if (!isConfigured) {
+    // Landing & download tetap bisa tampil walau env Supabase belum diisi
+    return (
+      <BrowserRouter>
+        <Toaster />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/download" element={<Download />} />
+          <Route path="*" element={<NotConfigured />} />
+        </Routes>
+      </BrowserRouter>
+    );
+  }
   return (
     <BrowserRouter>
       <Toaster />
       <Suspense fallback={<PageLoading />}>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/download" element={<Download />} />
           <Route path="/t/:slug" element={<StorePage />} />
           <Route path="/t/:slug/checkout" element={<CheckoutPage />} />
           <Route path="/o/:id" element={<TrackPage />} />

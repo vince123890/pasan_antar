@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Navigate, NavLink, Outlet } from 'react-router-dom';
+import { InstallBanner } from '../../components/Install';
 import { OfflineBanner, PageLoading, Toggle, toast, useOnline } from '../../components/ui';
 import { toAppError } from '../../lib/errors';
 import { rupiah } from '../../lib/format';
@@ -145,6 +146,7 @@ function SellerShell({ session, store, setStore }: Pick<SellerContextValue, 'ses
     <SellerContext.Provider value={ctx}>
       <div className="mx-auto min-h-dvh max-w-lg bg-stone-50 pb-24">
         <OfflineBanner />
+        <InstallBanner context="seller" />
         <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-stone-200 bg-white px-4 py-3">
           <div className="min-w-0 flex-1">
             <p className="truncate font-bold">{store.name}</p>

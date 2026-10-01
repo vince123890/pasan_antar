@@ -12,6 +12,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
+        id: '/',
         name: 'Pesan Antar',
         short_name: 'Pesan Antar',
         description: 'Pesan antar dari warung & toko terdekat',
@@ -20,6 +21,11 @@ export default defineConfig({
         display: 'standalone',
         background_color: '#fafaf9',
         theme_color: '#e8590c',
+        categories: ['shopping', 'food', 'business'],
+        shortcuts: [
+          { name: 'Pesanan masuk (penjual)', short_name: 'Penjual', url: '/seller', icons: [{ src: '/icon-192.png', sizes: '192x192' }] },
+          { name: 'Pesanan saya (pembeli)', short_name: 'Pesanan saya', url: '/pesanan', icons: [{ src: '/icon-192.png', sizes: '192x192' }] },
+        ],
         icons: [
           { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },

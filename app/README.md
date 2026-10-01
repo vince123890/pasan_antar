@@ -38,12 +38,18 @@ Coba alur lengkap:
 
 ## 3. Deploy ke Vercel
 
-1. Push folder ini ke GitHub (repo root berisi folder `app/`).
-2. Vercel → **Add New Project** → pilih repo → **Root Directory: `app`** → framework Vite (otomatis).
-3. **Environment Variables**: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` → Deploy.
-4. Kembali ke Supabase → URL Configuration → isi Site URL & Redirect URL dengan domain Vercel.
+1. Vercel → **Add New Project** → pilih repo. Root Directory **biarkan default** (`./`) —
+   [`vercel.json`](../vercel.json) di root repo sudah mengatur install & build di folder `app/`.
+2. **Settings → Environment Variables**: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` → **Redeploy**.
+   Tanpa env ini landing page & halaman `/download` tetap tampil, tapi fitur toko belum jalan.
+3. Kembali ke Supabase → URL Configuration → isi Site URL & Redirect URL dengan domain Vercel.
 
-`vercel.json` sudah mengatur fallback SPA agar link `/t/nama-toko` bisa dibuka langsung.
+Setiap push ke `main` otomatis deploy ulang. Fallback SPA sudah diatur agar link `/t/nama-toko` bisa dibuka langsung.
+
+## Download aplikasi
+
+Aplikasi berupa PWA: dipasang dari browser tanpa Play Store. Bagikan link `https://<domain>/download` —
+di Android/Chrome tombolnya langsung memasang aplikasi, di iPhone muncul panduan "Tambah ke Layar Utama".
 
 > Paket Hobby Vercel hanya untuk penggunaan non-komersial. Saat mulai berbayar, pindah ke Vercel Pro atau Cloudflare Pages (build statis yang sama).
 
