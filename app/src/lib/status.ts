@@ -1,4 +1,4 @@
-import type { Fulfillment, OrderStatus } from './types';
+import type { Fulfillment, OrderStatus, PaymentStatus } from './types';
 
 export const STATUS_LABEL: Record<OrderStatus, string> = {
   pending: 'Menunggu konfirmasi',
@@ -20,6 +20,20 @@ export const STATUS_TONE: Record<OrderStatus, string> = {
   completed: 'bg-emerald-100 text-emerald-800',
   rejected: 'bg-red-100 text-red-800',
   cancelled: 'bg-stone-200 text-stone-700',
+};
+
+export const PAYMENT_LABEL: Record<PaymentStatus, string> = {
+  unpaid: 'Belum dibayar',
+  pending_verification: 'Cek bukti transfer',
+  paid: 'Lunas',
+  rejected: 'Bukti ditolak',
+};
+
+export const PAYMENT_TONE: Record<PaymentStatus, string> = {
+  unpaid: 'bg-stone-100 text-stone-700',
+  pending_verification: 'bg-amber-100 text-amber-800',
+  paid: 'bg-emerald-100 text-emerald-800',
+  rejected: 'bg-red-100 text-red-800',
 };
 
 export const ACTIVE: OrderStatus[] = ['accepted', 'preparing', 'delivering', 'ready_pickup'];

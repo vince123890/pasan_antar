@@ -10,8 +10,9 @@ Stack: Vite + React + TypeScript + Tailwind, Supabase (Postgres, Auth, Realtime,
 ## 1. Siapkan Supabase
 
 1. Buat project di <https://supabase.com> (region Singapore paling dekat).
-2. **SQL Editor** → tempel seluruh isi [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql) → **Run**.
-   Ini membuat tabel, RLS, fungsi (ongkir, pesanan, status), realtime, bucket foto, dan kategori toko.
+2. **SQL Editor** → jalankan berurutan (tempel isi file → **Run**):
+   1. [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql) — tabel, RLS, fungsi ongkir & pesanan, realtime, bucket foto, kategori toko.
+   2. [`supabase/migrations/0002_payment.sql`](supabase/migrations/0002_payment.sql) — status pembayaran, konfirmasi lunas, nota.
 3. **Authentication → Sign In / Providers**:
    - Aktifkan **Allow anonymous sign-ins** (wajib — pembeli memesan tanpa daftar).
    - **Email** sudah aktif secara default (login penjual via link email).
@@ -61,6 +62,11 @@ di Android/Chrome tombolnya langsung memasang aplikasi, di iPhone muncul panduan
 | `npm run build` | Typecheck + build produksi ke `dist/` |
 | `npm test` | Tes unit (ongkir, format) + tes SQL di Postgres WASM (PGlite) |
 | `npm run icons` | Buat ulang ikon PWA di `public/` |
+
+## Server ringan
+
+Server hanya menyimpan data yang dibagi penjual–pembeli (toko, produk, pesanan, status bayar).
+Bukti transfer dan nota **disimpan di HP** (local storage) dan dikirim lewat **WhatsApp** — tidak pernah diunggah.
 
 ## Keamanan singkat
 

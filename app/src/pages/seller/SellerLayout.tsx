@@ -122,6 +122,13 @@ function SellerShell({ session, store, setStore }: Pick<SellerContextValue, 'ses
     setOrders(prev => prev.map(o => (o.id === row.id ? { ...o, ...row, order_items: o.order_items } : o)));
   }, [refreshOrders]);
 
+  const confirmPayment = useCallback(async (order: Order, accept: boolean, note?: string) => {
+    const { data, error } = await supabase.rpc('confirm_payment', { p_order_id: order.id, p_accept: accept, p_note: note ?? null });
+    if (error) throw toAppError(error);
+    const row = data as Order;
+    setOrders(prev => prev.map(o => (o.id === row.id ? { ...o, ...row, order_items: o.order_items } : o)));
+  }, []);
+
   const updateStore = useCallback(async (patch: Partial<Store>) => {
     const { data, error } = await supabase.from('stores').update(patch).eq('id', store.id).select().single();
     if (error) throw toAppError(error);
@@ -140,7 +147,7 @@ function SellerShell({ session, store, setStore }: Pick<SellerContextValue, 'ses
     }
   };
 
-  const ctx: SellerContextValue = { session, store, setStore, orders, ordersLoading, refreshOrders, changeStatus, updateStore };
+  const ctx: SellerContextValue = { session, store, setStore, orders, ordersLoading, refreshOrders, changeStatus, confirmPayment, updateStore };
 
   return (
     <SellerContext.Provider value={ctx}>

@@ -22,6 +22,8 @@ const MESSAGES: Record<string, string | ((detail: string) => string)> = {
   INVALID_TRANSITION: 'Perubahan status tidak diizinkan.',
   REASON_REQUIRED: 'Alasan penolakan wajib diisi.',
   INVALID_TIERS: 'Tarif ongkir tidak valid.',
+  PROOF_REQUIRED: 'Lampirkan foto bukti transfer terlebih dahulu.',
+  ALREADY_PAID: 'Pesanan ini sudah lunas.',
 };
 
 export interface AppError {

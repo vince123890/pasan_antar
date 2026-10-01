@@ -200,7 +200,7 @@ export default function Story() {
           {([
             ['cash', 'Tanpa komisi', 'Untung tetap utuh milik Anda. Tidak ada potongan per pesanan.'],
             ['map', 'Tarif ongkir Anda yang atur', 'Gratis, per order, atau per km. Sistem yang menghitung.'],
-            ['wallet', 'Pembeli bayar langsung ke Anda', 'Tunai atau transfer ke rekening Anda. Uang tidak lewat kami.'],
+            ['wallet', 'Pembeli bayar langsung ke Anda', 'Tunai atau transfer ke rekening Anda — uang tidak lewat kami. Nota lunas terkirim lewat WhatsApp.'],
           ] as const).map(([ic, t, d], i) => (
             <Reveal key={t} delay={i * 110} className="flex gap-4">
               <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-stone-900 text-white"><Icon name={ic} className="h-6 w-6" /></span>

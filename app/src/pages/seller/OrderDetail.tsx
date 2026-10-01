@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ItemsTable, StatusBadge, Totals } from '../../components/OrderBits';
 import { Empty, Sheet, Spinner, toast, TopBar } from '../../components/ui';
@@ -6,7 +6,9 @@ import type { AppError } from '../../lib/errors';
 import { displayWa, formatDateTime, rupiah, waLink } from '../../lib/format';
 import { directionsLink } from '../../lib/geo';
 import { useSeller } from '../../lib/seller';
-import { sellerActions, STATUS_LABEL } from '../../lib/status';
+import { getInvoice, saveInvoice } from '../../lib/local';
+import { renderInvoicePng, shareImageViaWhatsApp, toInvoice } from '../../lib/receipt';
+import { PAYMENT_LABEL, PAYMENT_TONE, sellerActions, STATUS_LABEL } from '../../lib/status';
 import type { Order, OrderStatus } from '../../lib/types';
 
 const REJECT_REASONS = ['Stok habis', 'Toko sedang ramai', 'Di luar jangkauan antar', 'Sudah mau tutup'];
@@ -100,6 +102,8 @@ export default function OrderDetail() {
           <div className="mt-3 border-t border-stone-100 pt-3"><Totals order={order} /></div>
         </section>
 
+        {order.status !== 'cancelled' && order.status !== 'rejected' && <PaymentPanel order={order} />}
+
         {order.status === 'cancelled' && (
           <p className="text-center text-sm text-stone-500">Pesanan dibatalkan oleh pembeli.</p>
         )}
@@ -138,5 +142,112 @@ export default function OrderDetail() {
         <Link to="/seller" className="text-sm text-stone-500">← Semua pesanan</Link>
       </div>
     </div>
+  );
+}
+
+export const notaUrl = (o: Order) => `${window.location.origin}/nota/${o.id}?k=${o.track_token}`;
+
+function PaymentPanel({ order }: { order: Order }) {
+  const { store, confirmPayment } = useSeller();
+  const [busy, setBusy] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [rejectOpen, setRejectOpen] = useState(false);
+  const [note, setNote] = useState('');
+  const paid = order.payment_status === 'paid';
+
+  // Salinan nota disimpan di HP penjual begitu lunas
+  useEffect(() => {
+    if (paid && !getInvoice(order.id)) saveInvoice(toInvoice(order, order.order_items ?? [], store));
+  }, [paid, order, store]);
+
+  const run = async (accept: boolean, n?: string) => {
+    if (accept && !confirm(order.payment_method === 'cod'
+      ? `Sudah terima uang ${rupiah(order.total)} dari ${order.buyer_name}?`
+      : 'Uang transfer sudah masuk ke rekening Anda?')) return;
+    setBusy(true);
+    try {
+      await confirmPayment(order, accept, n);
+      toast(accept ? 'Lunas — kirim nota ke pembeli lewat WhatsApp' : 'Bukti ditolak — kabari pembeli di WhatsApp', accept ? 'success' : 'info');
+      setRejectOpen(false);
+    } catch (e) {
+      toast((e as AppError).message, 'error');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const sendNota = async () => {
+    setSending(true);
+    try {
+      const inv = getInvoice(order.id) ?? toInvoice(order, order.order_items ?? [], store);
+      saveInvoice(inv);
+      const blob = await renderInvoicePng(inv);
+      const text = `Terima kasih ${order.buyer_name}. Pembayaran pesanan ${order.code} di ${store.name} sudah kami terima. Nota: ${notaUrl(order)}`;
+      const res = await shareImageViaWhatsApp(blob, `nota-${inv.invoiceNo}.png`, text, order.buyer_phone);
+      if (res === 'fallback') toast('Gambar nota tersimpan — lampirkan di chat WhatsApp pembeli');
+    } catch (e) {
+      toast((e as Error).message, 'error');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const askProof = order.buyer_phone
+    ? waLink(order.buyer_phone, `Halo ${order.buyer_name}, mohon kirim bukti transfer pesanan ${order.code} sebesar ${rupiah(order.total)} ya.`)
+    : null;
+
+  return (
+    <section className="card p-4">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="font-semibold">Pembayaran • {order.payment_method === 'cod' ? 'COD (tunai)' : 'Transfer'}</h2>
+        <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${PAYMENT_TONE[order.payment_status]}`}>{PAYMENT_LABEL[order.payment_status]}</span>
+      </div>
+
+      {order.payment_method === 'transfer' && !paid && (
+        <p className="mt-2 text-sm text-stone-600">
+          Bukti transfer dikirim pembeli ke <b>WhatsApp Anda</b>. Cek juga mutasi rekening sebelum menandai lunas.
+          {askProof && <> <a className="font-semibold text-brand-700" href={askProof} target="_blank" rel="noreferrer">Minta bukti di WA</a></>}
+        </p>
+      )}
+      {order.payment_status === 'rejected' && (
+        <p className="mt-3 rounded-xl bg-red-50 p-3 text-sm text-red-800">
+          Bukti ditolak: {order.payment_note}. Menunggu pembeli mengirim bukti baru.
+        </p>
+      )}
+
+      {paid ? (
+        <div className="mt-3 space-y-2">
+          <p className="text-sm text-emerald-700">Lunas {order.paid_at ? formatDateTime(order.paid_at) : ''}</p>
+          <button className="btn-wa w-full py-3" disabled={sending} onClick={sendNota}>
+            {sending && <Spinner className="h-4 w-4" />} Kirim nota ke WA pembeli
+          </button>
+          <a className="btn-ghost w-full" href={notaUrl(order)} target="_blank" rel="noreferrer">Lihat nota</a>
+        </div>
+      ) : order.payment_method === 'cod' ? (
+        <button className="btn mt-3 w-full bg-emerald-600 py-3 text-white hover:bg-emerald-700" disabled={busy} onClick={() => run(true)}>
+          {busy && <Spinner className="h-4 w-4" />} Sudah terima pembayaran {rupiah(order.total)}
+        </button>
+      ) : order.payment_status === 'pending_verification' ? (
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          <button className="btn col-span-2 bg-emerald-600 py-3 text-white hover:bg-emerald-700" disabled={busy} onClick={() => run(true)}>
+            {busy && <Spinner className="h-4 w-4" />} Pembayaran diterima
+          </button>
+          <button className="btn-danger py-3" disabled={busy} onClick={() => setRejectOpen(true)}>Tidak valid</button>
+        </div>
+      ) : null}
+
+      <Sheet open={rejectOpen} onClose={() => setRejectOpen(false)} title="Bukti transfer tidak valid">
+        <div className="flex flex-wrap gap-2">
+          {['Nominal kurang', 'Dana belum masuk', 'Foto tidak jelas', 'Rekening tujuan salah'].map(r => (
+            <button key={r} className={`chip ${note === r ? 'chip-active' : ''}`} onClick={() => setNote(r)}>{r}</button>
+          ))}
+        </div>
+        <textarea className="input mt-3" rows={2} placeholder="Atau tulis alasan lain" value={note} onChange={e => setNote(e.target.value)} />
+        <button className="btn mt-4 w-full bg-red-600 py-3 text-white" disabled={!note.trim() || busy} onClick={() => run(false, note)}>
+          {busy && <Spinner className="h-4 w-4" />} Tolak bukti
+        </button>
+        <p className="hint text-center">Pembeli akan diminta mengirim bukti baru.</p>
+      </Sheet>
+    </section>
   );
 }

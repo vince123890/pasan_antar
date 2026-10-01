@@ -13,7 +13,7 @@ create function auth.jwt() returns jsonb language sql stable as $$
 create function auth.uid() returns uuid language sql stable as $$ select nullif(auth.jwt() ->> 'sub', '')::uuid $$;
 create function auth.role() returns text language sql stable as $$ select auth.jwt() ->> 'role' $$;
 create schema storage;
-create table storage.buckets (id text primary key, name text, public boolean);
+create table storage.buckets (id text primary key, name text, public boolean, file_size_limit bigint, allowed_mime_types text[]);
 create table storage.objects (id uuid primary key default gen_random_uuid(), bucket_id text, name text);
 create function storage.foldername(name text) returns text[] language sql immutable as $$
   select (string_to_array(name, '/'))[1:array_length(string_to_array(name, '/'), 1) - 1] $$;
@@ -70,6 +70,7 @@ beforeAll(async () => {
   db = new PGlite();
   await db.exec(STUB);
   await db.exec(readFileSync(new URL('../supabase/migrations/0001_init.sql', import.meta.url), 'utf8'));
+  await db.exec(readFileSync(new URL('../supabase/migrations/0002_payment.sql', import.meta.url), 'utf8'));
   await db.exec(GRANTS);
   await db.exec(`insert into auth.users values ('${SELLER}'),('${SELLER2}'),('${BUYER}'),('${BUYER2}')`);
 
@@ -280,5 +281,60 @@ describe('save_delivery_settings', () => {
   it('hanya pemilik', async () => {
     await as(SELLER2);
     await expectError(q(`select save_delivery_settings($1, '{}'::jsonb, '[]'::jsonb)`, [storeId]), 'FORBIDDEN');
+  });
+});
+
+describe('pembayaran (status saja; bukti & nota di HP via WA)', () => {
+  const BUYER3 = '66666666-6666-6666-6666-666666666666';
+
+  beforeAll(async () => {
+    await db.exec('reset role');
+    await db.exec(`insert into auth.users values ('${BUYER3}')`);
+    await as(SELLER);
+    await q(`update stores set bank_info = 'BCA 123 a.n. Sri' where id = $1`, [storeId]);
+  });
+
+  it('alur transfer: menunggu cek → ditolak → kirim ulang → lunas', async () => {
+    await as(BUYER3, { anonymous: true });
+    const [o] = await q(PLACE, placeArgs({ pay: 'transfer' }));
+    expect(o.payment_status).toBe('pending_verification');
+
+    await expectError(q(`select confirm_payment($1, true)`, [o.id]), 'FORBIDDEN');
+
+    await as(SELLER);
+    await expectError(q(`select confirm_payment($1, false)`, [o.id]), 'REASON_REQUIRED');
+    const [rej] = await q(`select * from confirm_payment($1, false, 'Nominal kurang')`, [o.id]);
+    expect(rej.payment_status).toBe('rejected');
+    expect(rej.payment_note).toBe('Nominal kurang');
+
+    await as(BUYER2, { anonymous: true });
+    await expectError(q(`select resubmit_payment($1)`, [o.id]), 'FORBIDDEN');
+    await as(BUYER3, { anonymous: true });
+    const [re] = await q(`select * from resubmit_payment($1)`, [o.id]);
+    expect(re.payment_status).toBe('pending_verification');
+
+    await as(SELLER);
+    const [paid] = await q(`select * from confirm_payment($1, true)`, [o.id]);
+    expect(paid.payment_status).toBe('paid');
+    expect(paid.paid_at).not.toBeNull();
+    await expectError(q(`select confirm_payment($1, true)`, [o.id]), 'ALREADY_PAID');
+
+    await db.exec('reset role');
+    const [{ track_token }] = await q(`select track_token from orders where id = $1`, [o.id]);
+    await as(null);
+    const [{ r }] = await q(`select get_order_by_token($1, $2) as r`, [o.id, track_token]);
+    expect(r.order.payment_status).toBe('paid');
+    expect(r.order.buyer_phone).toBeUndefined();
+    expect(r.store).toHaveProperty('address');
+  });
+
+  it('COD: mulai belum dibayar, penjual tandai lunas', async () => {
+    await as(BUYER3, { anonymous: true });
+    const [o] = await q(PLACE, placeArgs({ ful: 'pickup', lat: null, lng: null, addr: null }));
+    expect(o.payment_status).toBe('unpaid');
+    await as(SELLER);
+    await expectError(q(`select confirm_payment($1, false, 'x')`, [o.id]), 'INVALID_TRANSITION');
+    const [paid] = await q(`select * from confirm_payment($1)`, [o.id]);
+    expect(paid.payment_status).toBe('paid');
   });
 });

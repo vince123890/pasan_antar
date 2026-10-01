@@ -22,6 +22,19 @@ export async function compressImage(file: File, maxSize = 800): Promise<Blob> {
   return jpeg;
 }
 
+/** Foto → data URL terkompresi untuk disimpan di HP (local storage), tidak diunggah ke server. */
+export async function fileToDataUrl(file: File, maxSize = 1000): Promise<string> {
+  const blob = await compressImage(file, maxSize);
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result));
+    r.onerror = () => reject(r.error);
+    r.readAsDataURL(blob);
+  });
+}
+
+export const dataUrlToBlob = (dataUrl: string) => fetch(dataUrl).then(r => r.blob());
+
 /** Upload ke bucket public-images/{storeId}/... dan kembalikan URL publik. */
 export async function uploadStoreImage(storeId: string, file: File, name: string): Promise<string> {
   const blob = await compressImage(file);

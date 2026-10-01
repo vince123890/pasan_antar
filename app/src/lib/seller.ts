@@ -12,6 +12,8 @@ export interface SellerContextValue {
   refreshOrders: () => Promise<void>;
   /** Ubah status lewat RPC lalu perbarui state lokal */
   changeStatus: (order: Order, to: OrderStatus, reason?: string) => Promise<void>;
+  /** Penjual: tandai lunas (accept) atau tolak bukti transfer */
+  confirmPayment: (order: Order, accept: boolean, note?: string) => Promise<void>;
   updateStore: (patch: Partial<Store>) => Promise<void>;
 }
 

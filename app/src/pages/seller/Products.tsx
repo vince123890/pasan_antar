@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
+import { PhotoPicker } from '../../components/PhotoPicker';
 import { Empty, PageLoading, Sheet, Spinner, toast, Toggle } from '../../components/ui';
 import { toAppError } from '../../lib/errors';
 import { parseIntSafe, rupiah } from '../../lib/format';
@@ -126,7 +127,6 @@ function ProductSheet({ product, cats, onClose, onSaved }: {
   const [file, setFile] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState(product.image_url ?? null);
   const [busy, setBusy] = useState(false);
-  const preview = useMemo(() => (file ? URL.createObjectURL(file) : imageUrl), [file, imageUrl]);
 
   const save = async (e: FormEvent) => {
     e.preventDefault();
@@ -169,19 +169,10 @@ function ProductSheet({ product, cats, onClose, onSaved }: {
   return (
     <Sheet open onClose={onClose} title={product.id ? 'Ubah produk' : 'Tambah produk'}>
       <form onSubmit={save} className="space-y-4">
-        <div className="flex items-center gap-4">
-          <label className="relative flex h-24 w-24 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-stone-300 bg-stone-50 text-center text-xs text-stone-500">
-            {preview ? <img src={preview} alt="" className="absolute inset-0 h-full w-full object-cover" /> : <span>📷<br />Foto</span>}
-            <input type="file" accept="image/*" className="hidden" onChange={e => setFile(e.target.files?.[0] ?? null)} />
-          </label>
-          <div className="text-xs text-stone-500">
-            Foto opsional. Otomatis diperkecil agar hemat kuota.
-            {preview && (
-              <button type="button" className="mt-1 block font-semibold text-red-600" onClick={() => { setFile(null); setImageUrl(null); }}>
-                Hapus foto
-              </button>
-            )}
-          </div>
+        <div>
+          <PhotoPicker file={file} existingUrl={imageUrl} label="Foto produk" onPick={setFile}
+            onClear={() => { setFile(null); setImageUrl(null); }} />
+          <p className="hint">Foto opsional, otomatis diperkecil agar hemat kuota.</p>
         </div>
         <div>
           <label className="label" htmlFor="pname">Nama produk</label>

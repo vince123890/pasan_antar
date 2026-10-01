@@ -21,13 +21,14 @@ const SELLER: [IconName, string, string][] = [
   ['map', 'Ongkir sesuai jarak', 'Atur sendiri: gratis, per order, atau per km. Batas jangkauan otomatis.'],
   ['box', 'Produk mudah dikelola', 'Foto boleh menyusul. Tandai "habis" cukup sekali ketuk.'],
   ['link', 'Link & QR toko', 'Bagikan ke grup WA atau tempel QR di etalase.'],
+  ['receipt', 'Lunas tercatat, nota terkirim', 'Tandai COD/transfer lunas, nota rapi langsung terkirim ke WhatsApp pembeli.'],
 ];
 
 const BUYER: [IconName, string, string][] = [
   ['user', 'Tanpa daftar', 'Buka link toko, pilih barang, pesan. Selesai.'],
   ['pin', 'Ongkir jelas di awal', 'Tandai rumah di peta, total langsung terlihat sebelum pesan.'],
   ['scooter', 'Lacak sampai tiba', 'Status berubah otomatis: diterima, diantar, selesai.'],
-  ['wallet', 'Bayar di tempat', 'Tunai saat barang tiba atau transfer langsung ke penjual.'],
+  ['wallet', 'Bayar tunai atau transfer', 'Foto bukti transfer langsung dari kamera, kirim ke WhatsApp penjual, terima nota lunas.'],
 ];
 
 const PLAN: [IconName, string, string][] = [
@@ -40,6 +41,7 @@ const BEFORE_AFTER: [string, string, string][] = [
   ['Pesanan', 'Chat terpotong-potong, disalin ulang ke kertas', 'Masuk rapi ke HP Anda dengan bunyi'],
   ['Ongkir', 'Dihitung kira-kira, sering tekor', 'Terhitung otomatis dari jarak, sesuai tarif Anda'],
   ['Alamat', '"Yang kemarin, Bu"', 'Titik di peta + patokan rumah'],
+  ['Pembayaran', 'Bukti transfer tercecer di chat, nota tulis tangan', 'Status lunas tercatat, nota rapi terkirim ke WhatsApp'],
   ['Untung', 'Dipotong komisi aplikasi', 'Utuh, dibayar langsung ke Anda'],
 ];
 
@@ -48,7 +50,8 @@ const FAQ: [string, string][] = [
   ['Bagaimana cara memasang aplikasinya?', 'Ketuk tombol "Download aplikasi" — aplikasi terpasang di layar utama HP (di bawah 1 MB) dan otomatis selalu versi terbaru. Bisa juga langsung dipakai dari browser tanpa dipasang.'],
   ['Bagaimana ongkir dihitung?', 'Dari jarak titik toko ke titik pembeli di peta, lalu dicocokkan dengan tarif yang diatur penjual. Total dihitung ulang di server agar selalu adil.'],
   ['Siapa yang mengantar?', 'Penjual sendiri atau karyawannya, seperti layanan antar warung pada umumnya. Pembeli juga bisa memilih ambil sendiri.'],
-  ['Pembayarannya bagaimana?', 'Tunai saat barang tiba (COD) atau transfer langsung ke rekening/e-wallet penjual. Uang tidak lewat kami.'],
+  ['Pembayarannya bagaimana?', 'Tunai saat barang tiba (COD) atau transfer langsung ke rekening/e-wallet penjual — uang tidak lewat kami. Untuk transfer, pembeli memotret bukti lalu mengirimnya ke WhatsApp penjual. Setelah penjual menandai lunas, nota terkirim ke WhatsApp pembeli.'],
+  ['Apakah foto bukti & nota disimpan di server?', 'Tidak. Bukti transfer dan nota tersimpan di HP penjual dan pembeli, lalu dikirim lewat WhatsApp. Server hanya mencatat pesanan dan status lunasnya — ringan dan hemat kuota.'],
   ['Cocok untuk usaha apa?', 'Warung kelontong, warung makan, kopi & minuman, angkringan, kue, sayur, toko material, dan usaha kecil lainnya.'],
 ];
 
@@ -221,6 +224,46 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ---------------- Pembayaran & nota ---------------- */}
+      <section id="bayar" className="scroll-mt-16 bg-[#fbf6f0]">
+        <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-20 md:grid-cols-2">
+          <div>
+            <Reveal><p className="text-sm font-bold tracking-wide text-brand-700 uppercase">Pembayaran beres</p></Reveal>
+            <Reveal delay={80}>
+              <h2 className="mt-3 text-4xl leading-tight font-extrabold tracking-tight">Lunas tercatat.<br />Nota terkirim ke WhatsApp.</h2>
+            </Reveal>
+            <Reveal delay={160}>
+              <p className="mt-4 text-lg text-stone-600">
+                Tidak ada lagi bukti transfer yang tenggelam di chat atau nota tulis tangan. Satu ketukan, pelanggan menerima nota rapi.
+              </p>
+            </Reveal>
+            <div className="mt-8 grid gap-4 sm:grid-cols-2">
+              {([
+                ['cash', 'Tunai (COD)', ['Antar & terima uang', 'Ketuk "Sudah terima pembayaran"', 'Kirim nota ke WhatsApp pembeli']],
+                ['camera', 'Transfer', ['Pembeli memotret bukti dari kamera', 'Bukti dikirim ke WhatsApp Anda', 'Cek, ketuk "Pembayaran diterima", kirim nota']],
+              ] as const).map(([ic, t, steps], i) => (
+                <Reveal key={t} delay={240 + i * 120} className="card p-5">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-stone-900 text-white"><Icon name={ic} className="h-5 w-5" /></span>
+                  <p className="mt-3 font-extrabold">{t}</p>
+                  <ol className="mt-2 space-y-1.5 text-sm text-stone-600">
+                    {steps.map((st, k) => (
+                      <li key={st} className="flex gap-2"><span className="font-bold text-brand-700">{k + 1}.</span>{st}</li>
+                    ))}
+                  </ol>
+                </Reveal>
+              ))}
+            </div>
+            <Reveal delay={480}>
+              <p className="mt-6 flex items-start gap-2 text-sm text-stone-500">
+                <Icon name="shield" className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                Foto bukti & nota tersimpan di HP masing-masing, bukan di server — ringan dan hemat kuota.
+              </p>
+            </Reveal>
+          </div>
+          <NotaVisual />
+        </div>
+      </section>
+
       {/* ---------------- Sebelum / Sesudah ---------------- */}
       <section className="mx-auto max-w-5xl px-4 pt-20">
         <Reveal className="text-center">
@@ -305,6 +348,55 @@ export default function Home() {
   );
 }
 
+/** Gambaran sukses: chat WhatsApp berisi bukti transfer & nota lunas. */
+function NotaVisual() {
+  return (
+    <Reveal delay={150} className="relative mx-auto w-full max-w-sm">
+      <div className="overflow-hidden rounded-[2rem] border border-stone-200 bg-[#efeae2] shadow-2xl">
+        <div className="flex items-center gap-3 bg-[#075e54] px-4 py-3 text-white">
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-sm font-bold">D</span>
+          <div>
+            <p className="text-sm font-bold">Dimas</p>
+            <p className="text-xs opacity-80">online</p>
+          </div>
+        </div>
+        <div className="space-y-3 p-4">
+          <Reveal delay={300} className="flex justify-start">
+            <div className="max-w-[75%] rounded-2xl rounded-tl-sm bg-white p-2 shadow-sm">
+              <div className="flex h-32 w-24 flex-col items-center justify-center gap-1 rounded-lg border border-sky-200 bg-sky-50">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-green-600 text-white"><Icon name="check" className="h-4 w-4" strokeWidth={3} /></span>
+                <span className="text-[10px] font-bold text-sky-900">Transfer berhasil</span>
+                <span className="text-xs font-extrabold text-sky-900">Rp13.500</span>
+              </div>
+              <p className="px-1 pt-1.5 text-xs">Bukti transfer PA-7F3K2Q</p>
+            </div>
+          </Reveal>
+          <Reveal delay={550} className="flex justify-end">
+            <div className="max-w-[80%] rounded-2xl rounded-tr-sm bg-[#d9fdd3] p-2 shadow-sm">
+              <div className="relative w-44 overflow-hidden rounded-lg bg-white p-3 shadow-sm">
+                <div className="absolute inset-x-0 top-0 h-1 bg-brand-600" />
+                <p className="text-xs font-extrabold">Warung Bu Sri</p>
+                <p className="mt-0.5 text-[9px] font-bold text-brand-700">NOTA PEMBELIAN • INV-7F3K2Q</p>
+                <div className="mt-2 space-y-1 text-[10px] text-stone-600">
+                  <p className="flex justify-between"><span>2× Indomie Goreng</span><span>Rp7.000</span></p>
+                  <p className="flex justify-between"><span>1× Telur Ayam</span><span>Rp2.500</span></p>
+                  <p className="flex justify-between"><span>1× Es Teh Manis</span><span>Rp4.000</span></p>
+                  <p className="flex justify-between border-t border-dashed border-stone-300 pt-1 font-bold text-stone-900"><span>Total</span><span>Rp13.500</span></p>
+                </div>
+                <span className="absolute top-3 right-2 rotate-[-14deg] rounded border-2 border-emerald-600 px-1 text-[10px] font-black tracking-wider text-emerald-600">LUNAS</span>
+              </div>
+              <p className="px-1 pt-1.5 text-xs">Terima kasih, pembayaran sudah kami terima</p>
+            </div>
+          </Reveal>
+        </div>
+      </div>
+      <div className="float-slow absolute -top-4 -right-3 rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white shadow-lg md:-right-8">
+        Nota terkirim 1 ketukan
+      </div>
+    </Reveal>
+  );
+}
+
 function Nav({ hasOrders }: { hasOrders: boolean }) {
   return (
     <header className="sticky top-0 z-40 border-b border-stone-200/60 bg-white/80 backdrop-blur-md">
@@ -312,7 +404,7 @@ function Nav({ hasOrders }: { hasOrders: boolean }) {
         <img src="/icon-192.png" alt="" className="h-9 w-9 rounded-xl" />
         <span className="text-lg font-extrabold tracking-tight">Pesan Antar</span>
         <nav className="ml-8 hidden gap-6 text-sm font-medium text-stone-600 lg:flex">
-          {[['#cerita', 'Kenapa'], ['#fitur', 'Fitur'], ['#ongkir', 'Ongkir'], ['#cara', 'Cara pakai'], ['#faq', 'FAQ']].map(([h, l]) => (
+          {[['#cerita', 'Kenapa'], ['#fitur', 'Fitur'], ['#ongkir', 'Ongkir'], ['#bayar', 'Pembayaran'], ['#cara', 'Cara pakai'], ['#faq', 'FAQ']].map(([h, l]) => (
             <a key={h} href={h} className="transition-colors hover:text-stone-900">{l}</a>
           ))}
         </nav>

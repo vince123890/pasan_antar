@@ -364,10 +364,226 @@ function TrackScreen() {
       </Entrance>
       <Entrance delay={10} style={{ marginTop: 14 }}>
         <div style={{ borderRadius: 16, background: C.surface, border: `1px solid ${C.line}`, padding: 14, fontSize: 14 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: C.inkDim }}>Ongkir</span><b style={{ color: C.accent }}>Gratis</b></div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}><span style={{ color: C.inkDim }}>Total</span><b>{rp(13500)}</b></div>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: C.inkDim }}>Total</span><b>{rp(13500)}</b></div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+            <span style={{ color: C.inkDim }}>Pembayaran</span>
+            <PaidBadge at={3.0} />
+          </div>
         </div>
       </Entrance>
+      <PaidNotaToast at={3.3} />
+    </AbsoluteFill>
+  );
+}
+
+function PaidBadge({ at }: { at: number }) {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const on = frame >= sec(at, fps);
+  const p = spring({ frame: frame - sec(at, fps), fps, config: theme.spring.bouncy });
+  return on ? (
+    <span style={{ padding: '3px 10px', borderRadius: 999, background: C.accentSoft, color: C.accent, fontWeight: 800, fontSize: 13, transform: `scale(${interpolate(p, [0, 1], [0.6, 1])})`, display: 'inline-block' }}>Lunas</span>
+  ) : (
+    <span style={{ padding: '3px 10px', borderRadius: 999, background: C.amberSoft, color: C.amberInk, fontWeight: 800, fontSize: 13 }}>Dicek penjual</span>
+  );
+}
+
+function PaidNotaToast({ at }: { at: number }) {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const p = spring({ frame: frame - sec(at, fps), fps, config: theme.spring.smooth });
+  return (
+    <div style={{
+      position: 'absolute', left: 14, right: 14, bottom: 24, borderRadius: 18, background: '#075E54', color: '#fff', padding: 12,
+      display: 'flex', alignItems: 'center', gap: 12, opacity: p, transform: `translateY(${interpolate(p, [0, 1], [60, 0])}px)`,
+      boxShadow: '0 18px 34px -14px rgba(7,94,84,0.6)',
+    }}>
+      <MiniNota width={46} />
+      <div>
+        <div style={{ fontSize: 14, fontWeight: 800 }}>Nota lunas diterima</div>
+        <div style={{ fontSize: 12, opacity: 0.85 }}>dari Warung Bu Sri di WhatsApp</div>
+      </div>
+    </div>
+  );
+}
+
+/** Miniatur gambar nota dengan stempel LUNAS. */
+function MiniNota({ width = 120, stamp = true }: { width?: number; stamp?: boolean }) {
+  const h = width * 1.35;
+  const k = width / 120;
+  return (
+    <div style={{ position: 'relative', width, height: h, borderRadius: 6 * k, background: '#fff', overflow: 'hidden', boxShadow: '0 4px 10px rgba(0,0,0,0.18)', flexShrink: 0 }}>
+      <div style={{ height: 5 * k, background: C.primary }} />
+      <div style={{ padding: 8 * k }}>
+        <div style={{ height: 8 * k, width: '70%', background: C.ink, borderRadius: 2 }} />
+        {[0.9, 0.6, 0.8, 0.5, 0.75, 0.6].map((w, i) => (
+          <div key={i} style={{ height: 4 * k, width: `${w * 100}%`, background: C.line, borderRadius: 2, marginTop: 6 * k }} />
+        ))}
+        <div style={{ height: 6 * k, width: '45%', background: C.ink, borderRadius: 2, marginTop: 9 * k, marginLeft: 'auto' }} />
+      </div>
+      {stamp && (
+        <div style={{
+          position: 'absolute', top: 10 * k, right: 4 * k, transform: 'rotate(-14deg)', border: `${2 * k}px solid #059669`, color: '#059669',
+          fontSize: 12 * k, fontWeight: 900, padding: `${1 * k}px ${4 * k}px`, borderRadius: 3 * k, letterSpacing: 1,
+        }}>LUNAS</div>
+      )}
+    </div>
+  );
+}
+
+/** Mock tangkapan layar m-banking "Transfer berhasil". */
+function ReceiptShot({ width = 92 }: { width?: number }) {
+  const k = width / 92;
+  return (
+    <div style={{ width, height: width * 1.5, borderRadius: 8 * k, background: '#EEF6FF', border: '1px solid #BFDBFE', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4 * k, flexShrink: 0 }}>
+      <div style={{ width: 26 * k, height: 26 * k, borderRadius: '50%', background: '#16A34A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Icon name="check" size={16 * k} color="#fff" stroke={3} />
+      </div>
+      <div style={{ fontSize: 8 * k, fontWeight: 800, color: '#1E3A8A' }}>Transfer berhasil</div>
+      <div style={{ fontSize: 10 * k, fontWeight: 900, color: '#1E3A8A' }}>{rp(13500)}</div>
+    </div>
+  );
+}
+
+// ---- Pembeli: bayar transfer, potret bukti, kirim ke WA ----
+function BuyerPayScreen() {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const camAt = sec(0.9, fps);
+  const shotAt = sec(1.25, fps);
+  const sendAt = sec(2.3, fps);
+  const flash = interpolate(frame, [shotAt - 2, shotAt, shotAt + 8], [0, 0.9, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp', easing: theme.ease.out });
+  const thumb = spring({ frame: frame - shotAt - 2, fps, config: theme.spring.bouncy });
+  const wa = spring({ frame: frame - sendAt - 6, fps, config: theme.spring.smooth });
+  const bubble = spring({ frame: frame - sendAt - 16, fps, config: theme.spring.bouncy });
+  return (
+    <AbsoluteFill style={{ background: '#FAFAF9', padding: '60px 18px 0' }}>
+      <Entrance delay={2}><div style={{ fontSize: 22, fontWeight: 800, marginBottom: 12 }}>Pembayaran</div></Entrance>
+      <Entrance delay={5}>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+          {['Tunai', 'Transfer'].map((t, i) => (
+            <div key={t} style={{ flex: 1, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 14,
+              border: `1.5px solid ${i === 1 ? C.ink : C.line}`, background: i === 1 ? C.ink : C.surface, color: i === 1 ? '#fff' : C.inkSoft }}>{t}</div>
+          ))}
+        </div>
+      </Entrance>
+      <Entrance delay={8}>
+        <div style={{ borderRadius: 14, background: C.surface, border: `1px solid ${C.line}`, padding: 12, fontSize: 13 }}>
+          <div style={{ color: C.inkDim }}>Transfer <b style={{ color: C.ink }}>{rp(13500)}</b> ke:</div>
+          <div style={{ marginTop: 4, fontWeight: 800, fontSize: 15 }}>BCA 1234567890 a.n. Sri</div>
+        </div>
+      </Entrance>
+      <Entrance delay={11} style={{ marginTop: 14 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: C.inkSoft, marginBottom: 8 }}>Bukti transfer *</div>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+          <div style={{ width: 92, height: 138, borderRadius: 12, border: `2px dashed ${C.line}`, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+            <div style={{ position: 'absolute', opacity: thumb, transform: `scale(${interpolate(thumb, [0, 1], [0.7, 1])})` }}><ReceiptShot /></div>
+          </div>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ height: 40, borderRadius: 12, border: `1.5px solid ${C.ink}`, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontWeight: 800, fontSize: 13, transform: `scale(${pressScale(frame, camAt, fps)})` }}>
+              Ambil dari kamera
+            </div>
+            <div style={{ height: 40, borderRadius: 12, border: `1px solid ${C.line}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 13, color: C.inkSoft }}>Pilih dari galeri</div>
+          </div>
+        </div>
+      </Entrance>
+      <div style={{ position: 'absolute', left: 18, right: 18, bottom: 26 }}>
+        <div style={{ height: 50, borderRadius: 14, background: '#25D366', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 15, transform: `scale(${pressScale(frame, sendAt, fps)})` }}>
+          Kirim bukti ke WA penjual
+        </div>
+      </div>
+      <Tap at={camAt} x={238} y={60 + 34 + 52 + 70 + 14 + 26 + 42} />
+      <Tap at={sendAt} x={SCREEN.w / 2} y={SCREEN.h - 51} />
+      <AbsoluteFill style={{ background: '#fff', opacity: flash, pointerEvents: 'none' }} />
+
+      {/* Chat WhatsApp penjual */}
+      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 360, borderRadius: '24px 24px 0 0', background: '#EFEAE2', transform: `translateY(${interpolate(wa, [0, 1], [380, 0])}px)`, boxShadow: '0 -14px 30px -16px rgba(0,0,0,0.4)' }}>
+        <div style={{ height: 58, borderRadius: '24px 24px 0 0', background: '#075E54', color: '#fff', display: 'flex', alignItems: 'center', gap: 10, padding: '0 16px' }}>
+          <div style={{ width: 32, height: 32, borderRadius: 16, background: '#ffffff33', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 13 }}>BS</div>
+          <div style={{ fontWeight: 800, fontSize: 15 }}>Warung Bu Sri</div>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', padding: 16 }}>
+          <div style={{ borderRadius: 12, background: '#D9FDD3', padding: 6, maxWidth: '78%', opacity: bubble, transform: `translateY(${interpolate(bubble, [0, 1], [20, 0])}px) scale(${interpolate(bubble, [0, 1], [0.9, 1])})`, transformOrigin: 'right bottom' }}>
+            <ReceiptShot width={120} />
+            <div style={{ fontSize: 12, padding: '6px 4px 2px', color: C.ink }}>Bukti transfer PA-7F3K2Q {rp(13500)} a.n. Dimas</div>
+          </div>
+        </div>
+      </div>
+    </AbsoluteFill>
+  );
+}
+
+// ---- Penjual: cek bukti di WA, tandai lunas, kirim nota ----
+function SellerPayScreen() {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const waIn = spring({ frame: frame - sec(0.3, fps), fps, config: theme.spring.bouncy });
+  const acceptAt = sec(1.5, fps);
+  const sendAt = sec(2.5, fps);
+  const paid = frame >= acceptAt + 2;
+  const paidP = spring({ frame: frame - acceptAt - 2, fps, config: theme.spring.bouncy });
+  const nota = spring({ frame: frame - sendAt - 6, fps, config: theme.spring.bouncy });
+  return (
+    <AbsoluteFill style={{ background: '#FAFAF9', padding: '60px 14px 0' }}>
+      <Entrance delay={2}>
+        <div style={{ borderRadius: 18, background: C.surface, border: `1px solid ${C.line}`, padding: 14 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 800 }}>Dimas</div>
+              <div style={{ fontSize: 11, color: C.inkDim }}>PA-7F3K2Q • Transfer</div>
+            </div>
+            <b style={{ fontSize: 15 }}>{rp(13500)}</b>
+          </div>
+          <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 14 }}>
+            <span style={{ fontWeight: 700 }}>Pembayaran</span>
+            {paid ? (
+              <span style={{ padding: '3px 10px', borderRadius: 999, background: C.accentSoft, color: C.accent, fontWeight: 800, fontSize: 12, display: 'inline-block', transform: `scale(${interpolate(paidP, [0, 1], [0.6, 1])})` }}>Lunas</span>
+            ) : (
+              <span style={{ padding: '3px 10px', borderRadius: 999, background: C.amberSoft, color: C.amberInk, fontWeight: 800, fontSize: 12 }}>Cek bukti transfer</span>
+            )}
+          </div>
+          <div style={{ marginTop: 12, position: 'relative', height: 50 }}>
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', gap: 8, opacity: paid ? 0 : 1 }}>
+              <div style={{ flex: 2, borderRadius: 12, background: '#059669', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 14, transform: `scale(${pressScale(frame, acceptAt, fps)})` }}>Pembayaran diterima</div>
+              <div style={{ flex: 1, borderRadius: 12, border: '1.5px solid #FECACA', color: '#B91C1C', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 13 }}>Tidak valid</div>
+            </div>
+            <div style={{ position: 'absolute', inset: 0, opacity: paid ? 1 : 0, borderRadius: 12, background: '#25D366', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 14, transform: `scale(${pressScale(frame, sendAt, fps)})` }}>
+              Kirim nota ke WA pembeli
+            </div>
+          </div>
+        </div>
+      </Entrance>
+
+      {/* Bukti masuk lewat WhatsApp */}
+      <div style={{
+        marginTop: 14, borderRadius: 16, background: '#fff', border: `1px solid ${C.line}`, padding: 10, display: 'flex', gap: 10, alignItems: 'center',
+        opacity: waIn, transform: `translateY(${interpolate(waIn, [0, 1], [20, 0])}px)`,
+      }}>
+        <ReceiptShot width={56} />
+        <div>
+          <div style={{ fontSize: 12, fontWeight: 800, color: '#075E54' }}>WhatsApp • Dimas</div>
+          <div style={{ fontSize: 12, color: C.inkSoft }}>Bukti transfer PA-7F3K2Q {rp(13500)}</div>
+        </div>
+      </div>
+
+      {/* Nota terkirim */}
+      <div style={{
+        position: 'absolute', left: 0, right: 0, bottom: 0, height: 330, borderRadius: '24px 24px 0 0', background: '#EFEAE2',
+        transform: `translateY(${interpolate(nota, [0, 1], [350, 0])}px)`, boxShadow: '0 -14px 30px -16px rgba(0,0,0,0.4)',
+      }}>
+        <div style={{ height: 54, borderRadius: '24px 24px 0 0', background: '#075E54', color: '#fff', display: 'flex', alignItems: 'center', gap: 10, padding: '0 16px', fontWeight: 800, fontSize: 15 }}>
+          Dimas
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', padding: 14 }}>
+          <div style={{ borderRadius: 12, background: '#D9FDD3', padding: 6 }}>
+            <MiniNota width={130} />
+            <div style={{ fontSize: 12, padding: '6px 4px 2px' }}>Terima kasih, pembayaran sudah kami terima</div>
+          </div>
+        </div>
+      </div>
+
+      <Tap at={acceptAt} x={SCREEN.w * 0.36} y={60 + 14 + 40 + 12 + 22 + 12 + 25} />
+      <Tap at={sendAt} x={SCREEN.w / 2} y={60 + 14 + 40 + 12 + 22 + 12 + 25} />
     </AbsoluteFill>
   );
 }
@@ -384,6 +600,7 @@ export const GUIDES: Record<Guide, { label: string; steps: Step[] }> = {
       { title: 'Atur tarif ongkir', tip: 'Gratis, per order, atau per km', tipIcon: 'scooter', seconds: 4.0, Screen: OngkirScreen },
       { title: 'Bagikan link & QR toko', tip: 'Kirim ke grup WA', tipIcon: 'store', seconds: 3.8, Screen: ShareScreen },
       { title: 'Terima pesanan & antar', tip: 'HP berbunyi saat ada pesanan', tipIcon: 'bell', seconds: 4.2, Screen: SellerScreen },
+      { title: 'Tandai lunas & kirim nota', tip: 'Nota terkirim lewat WhatsApp', tipIcon: 'check', seconds: 4.0, Screen: SellerPayScreen },
     ],
   },
   buyer: {
@@ -392,7 +609,8 @@ export const GUIDES: Record<Guide, { label: string; steps: Step[] }> = {
       { title: 'Buka link dari toko', tip: 'Tanpa daftar akun', tipIcon: 'check', seconds: 3.4, Screen: WaLinkScreen },
       { title: 'Pilih barang', tip: 'Total langsung terlihat', tipIcon: 'bag', seconds: 3.6, Screen: PickScreen },
       { title: 'Tandai rumah di peta', tip: 'Ongkir otomatis dari jarak', tipIcon: 'pin', seconds: 3.6, Screen: MapScreen },
-      { title: 'Pantau sampai tiba', tip: 'Status berubah otomatis', tipIcon: 'scooter', seconds: 3.6, Screen: TrackScreen },
+      { title: 'Bayar & kirim bukti lewat WA', tip: 'Foto bukti langsung dari kamera', tipIcon: 'check', seconds: 4.0, Screen: BuyerPayScreen },
+      { title: 'Pantau sampai tiba', tip: 'Nota lunas dikirim ke WhatsApp', tipIcon: 'scooter', seconds: 4.4, Screen: TrackScreen },
     ],
   },
 };

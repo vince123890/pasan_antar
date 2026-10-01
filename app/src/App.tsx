@@ -9,6 +9,7 @@ const Home = lazy(() => import('./pages/Home'));
 const Download = lazy(() => import('./pages/Download'));
 const CheckoutPage = lazy(() => import('./pages/buyer/CheckoutPage'));
 const TrackPage = lazy(() => import('./pages/buyer/TrackPage'));
+const NotaPage = lazy(() => import('./pages/buyer/NotaPage'));
 const MyOrdersPage = lazy(() => import('./pages/buyer/MyOrdersPage'));
 const Login = lazy(() => import('./pages/seller/Login'));
 const SellerLayout = lazy(() => import('./pages/seller/SellerLayout'));
@@ -58,6 +59,7 @@ export default function App() {
           <Route path="/t/:slug" element={<StorePage />} />
           <Route path="/t/:slug/checkout" element={<CheckoutPage />} />
           <Route path="/o/:id" element={<TrackPage />} />
+          <Route path="/nota/:id" element={<NotaPage />} />
           <Route path="/pesanan" element={<MyOrdersPage />} />
           <Route path="/seller/login" element={<Login />} />
           <Route path="/seller" element={<SellerLayout />}>

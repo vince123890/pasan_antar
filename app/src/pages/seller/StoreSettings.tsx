@@ -1,5 +1,6 @@
 import { lazy, Suspense, useState, type FormEvent } from 'react';
-import { Spinner, StoreAvatar, toast } from '../../components/ui';
+import { PhotoPicker } from '../../components/PhotoPicker';
+import { Spinner, toast } from '../../components/ui';
 import type { AppError } from '../../lib/errors';
 import { toAppError } from '../../lib/errors';
 import { displayWa, normalizeWa } from '../../lib/format';
@@ -72,12 +73,9 @@ export default function StoreSettings() {
   return (
     <div className="p-4">
       <form onSubmit={save} className="space-y-4">
-        <section className="card flex items-center gap-4 p-4">
-          <StoreAvatar name={store.name} url={store.logo_url} size="h-16 w-16" />
-          <label className="btn-secondary cursor-pointer">
-            {logoBusy && <Spinner className="h-4 w-4" />} Ganti logo
-            <input type="file" accept="image/*" className="hidden" onChange={e => changeLogo(e.target.files?.[0])} />
-          </label>
+        <section className="card p-4">
+          <p className="mb-3 flex items-center gap-2 font-semibold">Logo toko {logoBusy && <Spinner className="h-4 w-4" />}</p>
+          <PhotoPicker file={null} existingUrl={store.logo_url} label="Logo" onPick={changeLogo} />
         </section>
 
         <section className="card space-y-4 p-4">

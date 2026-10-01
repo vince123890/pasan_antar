@@ -4,7 +4,7 @@ import { StatusBadge } from '../../components/OrderBits';
 import { Empty, PageLoading } from '../../components/ui';
 import { rupiah, timeAgo } from '../../lib/format';
 import { useSeller } from '../../lib/seller';
-import { ACTIVE, FINAL } from '../../lib/status';
+import { ACTIVE, FINAL, PAYMENT_LABEL, PAYMENT_TONE } from '../../lib/status';
 import type { Order } from '../../lib/types';
 
 type Tab = 'baru' | 'proses' | 'riwayat';
@@ -95,6 +95,9 @@ function OrderCard({ order: o, now }: { order: Order; now: number }) {
         <div className="mt-3 flex items-center justify-between text-sm">
           <span className="text-stone-600">
             {o.fulfillment === 'delivery' ? `🛵 Antar ±${o.distance_km ?? '-'} km` : '🏪 Ambil sendiri'} • {o.payment_method === 'cod' ? 'COD' : 'Transfer'}
+            {o.status !== 'cancelled' && o.status !== 'rejected' && (
+              <span className={`ml-2 rounded-full px-2 py-0.5 text-[11px] font-semibold ${PAYMENT_TONE[o.payment_status]}`}>{PAYMENT_LABEL[o.payment_status]}</span>
+            )}
           </span>
           <span className="font-bold tabular-nums">{rupiah(o.total)}</span>
         </div>

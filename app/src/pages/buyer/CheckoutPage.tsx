@@ -1,11 +1,13 @@
 import { lazy, Suspense, useMemo, useRef, useState, type FormEvent } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
+import { PhotoPicker } from '../../components/PhotoPicker';
 import { OfflineBanner, PageLoading, Spinner, toast, TopBar, useOnline } from '../../components/ui';
 import { useCatalog } from '../../lib/catalog';
 import { toAppError } from '../../lib/errors';
 import { normalizeWa, rupiah } from '../../lib/format';
 import { calcDeliveryFee, maxCoverageKm } from '../../lib/geo';
-import { addMyOrder, clearCart, getProfile, saveProfile, setLineNote, setQty, useCart } from '../../lib/local';
+import { addMyOrder, clearCart, getProfile, saveProfile, saveProof, setLineNote, setQty, useCart } from '../../lib/local';
+import { fileToDataUrl } from '../../lib/media';
 import { ensureBuyerSession, supabase } from '../../lib/supabase';
 import type { Catalog, Fulfillment, LatLng, Order, PaymentMethod } from '../../lib/types';
 
@@ -32,6 +34,7 @@ function Checkout({ catalog, reload }: { catalog: Catalog; reload: () => Promise
   const [phone, setPhone] = useState(profile.phone);
   const [note, setNote] = useState('');
   const [payment, setPayment] = useState<PaymentMethod>('cod');
+  const [proof, setProof] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const clientRef = useRef(crypto.randomUUID());
 
@@ -60,8 +63,11 @@ function Checkout({ catalog, reload }: { catalog: Catalog; reload: () => Promise
     if (!wa) return toast('Nomor WhatsApp tidak valid', 'error');
     if (needLocation) return toast('Tentukan lokasi pengantaran di peta', 'error');
     if (outOfCoverage || belowMin) return;
+    if (payment === 'transfer' && !proof) return toast('Lampirkan foto bukti transfer dulu', 'error');
     setBusy(true);
     try {
+      // Bukti transfer hanya disimpan di HP ini, lalu dikirim ke penjual lewat WhatsApp
+      const proofDataUrl = payment === 'transfer' && proof ? await fileToDataUrl(proof) : null;
       await ensureBuyerSession();
       const { data, error } = await supabase.rpc('place_order', {
         p_store_id: store.id,
@@ -84,6 +90,7 @@ function Checkout({ catalog, reload }: { catalog: Catalog; reload: () => Promise
         id: order.id, code: order.code, track_token: order.track_token!, store_name: store.name,
         store_slug: store.slug, total: order.total, created_at: order.created_at,
       });
+      if (proofDataUrl) saveProof(order.id, proofDataUrl);
       clearCart(store.id);
       navigate(`/o/${order.id}?k=${order.track_token}&baru=1`, { replace: true });
     } catch (err) {
@@ -191,9 +198,19 @@ function Checkout({ catalog, reload }: { catalog: Catalog; reload: () => Promise
               <input type="radio" name="pay" checked={payment === 'transfer'} onChange={() => setPayment('transfer')} className="mt-1 h-4 w-4 accent-brand-600" />
               <span>
                 🏦 Transfer
-                {payment === 'transfer' && <span className="mt-1 block rounded-lg bg-stone-50 p-2 text-sm whitespace-pre-line text-stone-700">{store.bank_info}</span>}
               </span>
             </label>
+          )}
+          {store.bank_info && payment === 'transfer' && (
+            <div className="space-y-3 rounded-xl bg-stone-50 p-3">
+              <p className="text-sm">Transfer <b>{rupiah(total)}</b> ke:</p>
+              <p className="rounded-lg bg-white p-2 text-sm font-semibold whitespace-pre-line text-stone-800">{store.bank_info}</p>
+              <div>
+                <p className="label">Bukti transfer <span className="text-red-600">*</span></p>
+                <PhotoPicker file={proof} label="Bukti transfer" aspect="portrait" required onPick={setProof} onClear={() => setProof(null)} />
+                <p className="hint">Foto layar m-banking / e-wallet atau struk ATM. Disimpan di HP Anda, lalu dikirim ke WhatsApp penjual setelah pesan.</p>
+              </div>
+            </div>
           )}
         </section>
 
@@ -214,9 +231,9 @@ function Checkout({ catalog, reload }: { catalog: Catalog; reload: () => Promise
 
       <div className="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-lg border-t border-stone-200 bg-white p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
         <button form="checkout" className="btn-primary w-full rounded-2xl py-4 text-base"
-          disabled={busy || !online || !store.is_open || belowMin || outOfCoverage || needLocation}>
+          disabled={busy || !online || !store.is_open || belowMin || outOfCoverage || needLocation || (payment === 'transfer' && !proof)}>
           {busy && <Spinner className="h-4 w-4" />}
-          {!online ? 'Tidak ada koneksi' : !store.is_open ? 'Toko sedang tutup' : needLocation ? 'Tentukan lokasi dulu' : `Pesan • ${rupiah(total)}`}
+          {!online ? 'Tidak ada koneksi' : !store.is_open ? 'Toko sedang tutup' : needLocation ? 'Tentukan lokasi dulu' : payment === 'transfer' && !proof ? 'Lampirkan bukti transfer' : `Pesan • ${rupiah(total)}`}
         </button>
       </div>
     </div>

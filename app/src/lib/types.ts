@@ -1,6 +1,7 @@
 export type FeeType = 'free' | 'flat' | 'per_km';
 export type Fulfillment = 'delivery' | 'pickup';
 export type PaymentMethod = 'cod' | 'transfer';
+export type PaymentStatus = 'unpaid' | 'pending_verification' | 'paid' | 'rejected';
 export type OrderStatus =
   | 'pending' | 'accepted' | 'preparing' | 'delivering'
   | 'ready_pickup' | 'completed' | 'rejected' | 'cancelled';
@@ -103,6 +104,9 @@ export interface Order {
   total: number;
   note: string | null;
   reject_reason: string | null;
+  payment_status: PaymentStatus;
+  paid_at: string | null;
+  payment_note: string | null;
   created_at: string;
   updated_at: string;
   order_items?: OrderItem[];

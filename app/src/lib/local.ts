@@ -126,3 +126,57 @@ export const getCachedCatalog = (slug: string) =>
 // ---------- Preferensi penjual ----------
 export const getPref = <T,>(key: string, fallback: T) => read<T>(`pref:${key}`, fallback);
 export const setPref = <T,>(key: string, value: T) => write(`pref:${key}`, value);
+
+// ---------- Bukti transfer & nota: disimpan di HP, bukan di server ----------
+export interface StoredProof {
+  orderId: string;
+  dataUrl: string;
+  savedAt: number;
+}
+
+const MAX_PROOFS = 15; // foto ±100–200 KB; dibatasi agar local storage (±5 MB) tidak penuh
+
+export function saveProof(orderId: string, dataUrl: string) {
+  const list = read<StoredProof[]>('proofs', []).filter(p => p.orderId !== orderId);
+  const next = [{ orderId, dataUrl, savedAt: Date.now() }, ...list];
+  // Bila kuota penuh, buang yang paling lama lalu coba lagi
+  for (let n = Math.min(next.length, MAX_PROOFS); n > 0; n--) {
+    try {
+      localStorage.setItem(PREFIX + 'proofs', JSON.stringify(next.slice(0, n)));
+      cache.set('proofs', next.slice(0, n));
+      listeners.forEach(fn => fn());
+      return true;
+    } catch { /* coba dengan lebih sedikit */ }
+  }
+  cache.set('proofs', next.slice(0, 1)); // tetap ada di memori selama halaman terbuka
+  listeners.forEach(fn => fn());
+  return false;
+}
+
+const EMPTY_PROOFS: StoredProof[] = [];
+export const useProofs = () => useLocal<StoredProof[]>('proofs', EMPTY_PROOFS);
+export const getProof = (orderId: string) => read<StoredProof[]>('proofs', EMPTY_PROOFS).find(p => p.orderId === orderId);
+
+export interface InvoiceSnapshot {
+  orderId: string;
+  invoiceNo: string;
+  store: { name: string; address?: string | null; wa_phone: string };
+  buyer_name: string;
+  created_at: string;
+  paid_at: string | null;
+  fulfillment: 'delivery' | 'pickup';
+  distance_km: number | null;
+  address: string | null;
+  items: { name: string; qty: number; price: number; line_total: number; note?: string | null }[];
+  subtotal: number;
+  delivery_fee: number;
+  total: number;
+  payment_method: 'cod' | 'transfer';
+}
+
+const EMPTY_INVOICES: InvoiceSnapshot[] = [];
+export function saveInvoice(inv: InvoiceSnapshot) {
+  const list = read<InvoiceSnapshot[]>('invoices', EMPTY_INVOICES).filter(i => i.orderId !== inv.orderId);
+  write('invoices', [inv, ...list].slice(0, 200)); // JSON kecil (±1 KB per nota)
+}
+export const getInvoice = (orderId: string) => read<InvoiceSnapshot[]>('invoices', EMPTY_INVOICES).find(i => i.orderId === orderId);
