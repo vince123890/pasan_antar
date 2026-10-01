@@ -23,6 +23,40 @@ export function useSession(): Session | null | undefined {
   return session;
 }
 
+export interface AuthProviders {
+  google: boolean;
+  email: boolean;
+  anonymous: boolean;
+}
+
+let providersPromise: Promise<AuthProviders | null> | null = null;
+
+/** Provider login yang aktif di Supabase (Authentication → Providers). null bila gagal dicek. */
+export function fetchAuthProviders(): Promise<AuthProviders | null> {
+  providersPromise ??= fetch(`${url}/auth/v1/settings`, { headers: { apikey: key ?? '' } })
+    .then(r => (r.ok ? r.json() : null))
+    .then((s: { external?: Record<string, boolean> } | null) =>
+      s?.external
+        ? { google: !!s.external.google, email: !!s.external.email, anonymous: !!s.external.anonymous_users }
+        : null)
+    .catch(() => {
+      providersPromise = null; // coba lagi lain kali (mis. sedang offline)
+      return null;
+    });
+  return providersPromise;
+}
+
+/** undefined = masih memuat, null = tidak bisa dicek */
+export function useAuthProviders(): AuthProviders | null | undefined {
+  const [p, setP] = useState<AuthProviders | null | undefined>(undefined);
+  useEffect(() => {
+    let alive = true;
+    fetchAuthProviders().then(v => alive && setP(v));
+    return () => { alive = false; };
+  }, []);
+  return p;
+}
+
 /** Pembeli tidak perlu daftar: buat sesi anonim bila belum ada. */
 export async function ensureBuyerSession(): Promise<string> {
   const { data } = await supabase.auth.getSession();

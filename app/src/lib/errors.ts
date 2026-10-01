@@ -40,6 +40,12 @@ export function toAppError(err: unknown): AppError {
     const m = MESSAGES[code];
     return { code, detail, message: typeof m === 'function' ? m(detail) : m };
   }
+  if (/anonymous sign-ins are disabled/i.test(raw)) {
+    return { code: 'ANON_DISABLED', detail, message: 'Pemesanan tanpa daftar belum diaktifkan oleh pengelola aplikasi. Coba lagi nanti.' };
+  }
+  if (/provider is not enabled/i.test(raw)) {
+    return { code: 'PROVIDER_DISABLED', detail, message: 'Metode login ini belum diaktifkan. Gunakan login dengan email.' };
+  }
   if (/fetch|network|load failed/i.test(raw) || !navigator.onLine) {
     return { code: 'NETWORK', detail, message: 'Tidak ada koneksi internet. Coba lagi.' };
   }
