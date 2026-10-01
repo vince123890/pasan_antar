@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Icon, type IconName } from '../components/Icon';
 import { InstallButton } from '../components/Install';
-import { CountUp, Reveal, WordRise } from '../components/landing/motion';
+import { Reveal, WordRise } from '../components/landing/motion';
 import OngkirSimulator from '../components/landing/OngkirSimulator';
 import Story from '../components/landing/Story';
 import { StoreAvatar } from '../components/ui';
@@ -30,8 +30,21 @@ const BUYER: [IconName, string, string][] = [
   ['wallet', 'Bayar di tempat', 'Tunai saat barang tiba atau transfer langsung ke penjual.'],
 ];
 
+const PLAN: [IconName, string, string][] = [
+  ['store', 'Buat toko', 'Isi nama toko, tandai lokasi, tambah produk. Sekitar 5 menit.'],
+  ['link', 'Bagikan link / QR', 'Kirim ke grup WA RT, pasang di status, atau tempel QR di etalase.'],
+  ['scooter', 'Terima & antar', 'Pesanan berbunyi di HP Anda. Terima, siapkan, antar.'],
+];
+
+const BEFORE_AFTER: [string, string, string][] = [
+  ['Pesanan', 'Chat terpotong-potong, disalin ulang ke kertas', 'Masuk rapi ke HP Anda dengan bunyi'],
+  ['Ongkir', 'Dihitung kira-kira, sering tekor', 'Terhitung otomatis dari jarak, sesuai tarif Anda'],
+  ['Alamat', '"Yang kemarin, Bu"', 'Titik di peta + patokan rumah'],
+  ['Untung', 'Dipotong komisi aplikasi', 'Utuh, dibayar langsung ke Anda'],
+];
+
 const FAQ: [string, string][] = [
-  ['Apakah benar gratis?', 'Ya. Tidak ada komisi per pesanan dan tidak ada biaya bulanan, untuk penjual maupun pembeli.'],
+  ['Apakah benar gratis?', 'Ya. Tidak ada komisi per pesanan dan tidak ada biaya bulanan. Pembeli juga tidak dipungut biaya apa pun.'],
   ['Bagaimana cara memasang aplikasinya?', 'Ketuk tombol "Download aplikasi" — aplikasi terpasang di layar utama HP (di bawah 1 MB) dan otomatis selalu versi terbaru. Bisa juga langsung dipakai dari browser tanpa dipasang.'],
   ['Bagaimana ongkir dihitung?', 'Dari jarak titik toko ke titik pembeli di peta, lalu dicocokkan dengan tarif yang diatur penjual. Total dihitung ulang di server agar selalu adil.'],
   ['Siapa yang mengantar?', 'Penjual sendiri atau karyawannya, seperti layanan antar warung pada umumnya. Pembeli juga bisa memilih ambil sendiri.'],
@@ -61,29 +74,31 @@ export default function Home() {
         <div className="relative mx-auto grid max-w-6xl items-center gap-6 px-4 pt-10 pb-8 md:grid-cols-[1.05fr_1fr] md:gap-10 md:pt-14 md:pb-14">
           <div className="text-center md:text-left">
             <p className="word-rise inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-stone-700 shadow-sm ring-1 ring-stone-200">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" /> Dari warung, untuk tetangga
+              <span className="h-2 w-2 rounded-full bg-emerald-500" /> Untuk warung & usaha kecil
             </p>
             <h1 className="mt-5 text-[2.6rem] leading-[1.05] font-extrabold tracking-[-0.035em] text-stone-900 sm:text-5xl lg:text-6xl">
-              <WordRise text="Pesan antar dari" startDelay={120} />
+              <WordRise text="Warung Anda bisa terima" startDelay={120} />
               <span className="relative inline-block text-brand-600">
-                <WordRise text="warung sebelah." startDelay={330} />
+                <WordRise text="pesan antar." startDelay={400} />
                 <svg className="underline-draw absolute -bottom-2 left-0 w-full" viewBox="0 0 300 14" preserveAspectRatio="none" aria-hidden>
                   <path d="M3 10 C 80 2, 200 2, 297 8" fill="none" stroke="#e8590c" strokeWidth="5" strokeLinecap="round" opacity="0.35" />
                 </svg>
               </span>
             </h1>
             <p className="word-rise mx-auto mt-5 max-w-lg text-lg text-stone-600 md:mx-0" style={{ animationDelay: '520ms' }}>
-              Penjual buka toko online dalam 5 menit. Pembeli pesan tanpa daftar. Ongkir dihitung otomatis dari jarak —
-              <b className="text-stone-800"> tanpa komisi.</b>
+              Pelanggan pesan dari HP, ongkir terhitung otomatis dari jarak, pesanan masuk rapi ke HP Anda —
+              <b className="text-stone-800"> tanpa potongan sepeser pun.</b>
             </p>
             <div className="word-rise mt-7 flex flex-col gap-3 sm:flex-row sm:justify-center md:justify-start" style={{ animationDelay: '640ms' }}>
-              <InstallButton className="btn-primary glow-breathe py-3.5 text-base sm:px-6" label="Download aplikasi" />
-              <Link to="/seller" className="btn-secondary py-3.5 text-base sm:px-6">
+              <Link to="/seller" className="btn-primary glow-breathe py-3.5 text-base sm:px-6">
                 <Icon name="store" className="h-5 w-5" /> Buka toko gratis
               </Link>
+              <a href="#cara" className="btn-secondary py-3.5 text-base sm:px-6">
+                <Icon name="play" className="h-4 w-4" /> Lihat cara pakai
+              </a>
             </div>
             <div className="word-rise mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-stone-500 md:justify-start" style={{ animationDelay: '760ms' }}>
-              {['0% komisi', 'Rp0 / bulan', '< 1 MB', 'Langsung dari browser'].map(t => (
+              {['0% komisi', 'Rp0 / bulan', 'Siap dalam 5 menit', 'Ringan di HP sederhana'].map(t => (
                 <span key={t} className="flex items-center gap-1.5"><Icon name="check" className="h-4 w-4 text-emerald-600" strokeWidth={2.6} />{t}</span>
               ))}
             </div>
@@ -139,20 +154,31 @@ export default function Home() {
       {/* ---------------- Cerita brand ---------------- */}
       <Story />
 
-      {/* ---------------- Angka ---------------- */}
+      {/* ---------------- Rencana: Buka toko dalam 3 langkah ---------------- */}
       <section className="bg-stone-900 text-white">
-        <div className="mx-auto grid max-w-6xl grid-cols-2 gap-8 px-4 py-14 text-center md:grid-cols-4">
-          {([
-            [<CountUp key="a" to={0} suffix="%" />, 'komisi per pesanan'],
-            [<CountUp key="b" to={0} prefix="Rp" />, 'biaya bulanan'],
-            [<><span className="text-stone-400">&lt;</span><CountUp key="c" to={1} suffix=" MB" /></>, 'ukuran aplikasi'],
-            [<CountUp key="d" to={3} suffix=" langkah" />, 'dari pilih sampai pesan'],
-          ] as [ReactNode, string][]).map(([big, small], i) => (
-            <Reveal key={small} delay={i * 90}>
-              <p className="text-4xl font-extrabold tracking-tight md:text-5xl">{big}</p>
-              <p className="mt-1 text-sm text-stone-400">{small}</p>
-            </Reveal>
-          ))}
+        <div className="mx-auto max-w-6xl px-4 py-20">
+          <Reveal className="text-center">
+            <p className="text-sm font-bold tracking-wide text-brand-200 uppercase">Rencananya sederhana</p>
+            <h2 className="mt-3 text-4xl font-extrabold tracking-tight">Buka toko dalam 3 langkah</h2>
+          </Reveal>
+          <Reveal className="relative mt-12">
+            <div className="line-draw absolute top-7 right-[18%] left-[18%] hidden h-0.5 bg-gradient-to-r from-brand-700 via-brand-500 to-brand-700 md:block" />
+            <ol className="relative grid gap-8 md:grid-cols-3">
+              {PLAN.map(([ic, t, d], i) => (
+                <Reveal key={t} as="li" delay={i * 140} className="text-center">
+                  <span className="relative mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-600 ring-8 ring-stone-900">
+                    <Icon name={ic} className="h-7 w-7" />
+                  </span>
+                  <p className="mt-4 text-sm font-bold text-brand-200">Langkah {i + 1}</p>
+                  <p className="mt-1 text-xl font-extrabold">{t}</p>
+                  <p className="mx-auto mt-1 max-w-[260px] text-stone-400">{d}</p>
+                </Reveal>
+              ))}
+            </ol>
+          </Reveal>
+          <Reveal delay={300} className="mt-12 text-center">
+            <Link to="/seller" className="btn-primary px-7 py-3.5 text-base">Buka toko gratis <Icon name="arrow" className="h-4 w-4" /></Link>
+          </Reveal>
         </div>
       </section>
 
@@ -195,6 +221,28 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ---------------- Sebelum / Sesudah ---------------- */}
+      <section className="mx-auto max-w-5xl px-4 pt-20">
+        <Reveal className="text-center">
+          <p className="text-sm font-bold tracking-wide text-brand-700 uppercase">Bedanya terasa</p>
+          <h2 className="mt-3 text-4xl font-extrabold tracking-tight">Sebelum & sesudah Pesan Antar</h2>
+        </Reveal>
+        <div className="mt-10 overflow-hidden rounded-[1.75rem] border border-stone-200">
+          <div className="grid grid-cols-[0.7fr_1fr_1fr] bg-stone-50 text-sm font-bold">
+            <span className="p-4" />
+            <span className="flex items-center gap-2 p-4 text-stone-500"><Icon name="x" className="h-4 w-4 text-red-500" strokeWidth={2.6} /> Sebelum</span>
+            <span className="flex items-center gap-2 bg-brand-50 p-4 text-brand-700"><Icon name="check" className="h-4 w-4" strokeWidth={2.8} /> Sesudah</span>
+          </div>
+          {BEFORE_AFTER.map(([k, before, after], i) => (
+            <Reveal key={k} delay={i * 90} className="grid grid-cols-[0.7fr_1fr_1fr] border-t border-stone-200 text-sm md:text-base">
+              <span className="p-4 font-bold">{k}</span>
+              <span className="p-4 text-stone-500 line-through decoration-stone-300">{before}</span>
+              <span className="bg-brand-50/60 p-4 font-semibold text-stone-900">{after}</span>
+            </Reveal>
+          ))}
+        </div>
+      </section>
+
       {/* ---------------- Cara pakai (video panduan) ---------------- */}
       <section id="cara" className="mx-auto max-w-6xl scroll-mt-16 px-4 py-20">
         <Reveal className="mx-auto max-w-2xl text-center">
@@ -226,12 +274,16 @@ export default function Home() {
           <div className="blob-a pointer-events-none absolute -right-20 -bottom-28 h-80 w-80 rounded-full bg-black/15 blur-2xl" />
           <p className="relative text-sm font-bold tracking-wide text-brand-100 uppercase">Dari warung, untuk tetangga</p>
           <h2 className="relative mx-auto mt-3 max-w-2xl text-4xl leading-tight font-extrabold tracking-tight md:text-5xl">
-            Mulai terima pesanan antar hari ini.
+            Jadilah warung andalan kampung yang bisa antar.
           </h2>
-          <p className="relative mt-3 text-brand-100">Gratis, tanpa komisi, siap dalam 5 menit.</p>
+          <p className="relative mx-auto mt-3 max-w-xl text-brand-100">
+            Pelanggan langganan pesan dari rumah, pesanan masuk rapi, untung tetap utuh. Siap dalam 5 menit.
+          </p>
           <div className="relative mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            <InstallButton className="btn bg-white py-3.5 text-base text-brand-700 shadow-lg hover:bg-brand-50 sm:px-6" label="Download aplikasi" />
-            <Link to="/seller" className="btn border border-white/40 py-3.5 text-base text-white hover:bg-white/10 sm:px-6">Buka toko gratis</Link>
+            <Link to="/seller" className="btn bg-white py-3.5 text-base text-brand-700 shadow-lg hover:bg-brand-50 sm:px-6">
+              <Icon name="store" className="h-5 w-5" /> Buka toko gratis
+            </Link>
+            <InstallButton className="btn border border-white/40 py-3.5 text-base text-white hover:bg-white/10 sm:px-6" label="Download aplikasi" />
           </div>
         </Reveal>
       </section>
@@ -260,14 +312,14 @@ function Nav({ hasOrders }: { hasOrders: boolean }) {
         <img src="/icon-192.png" alt="" className="h-9 w-9 rounded-xl" />
         <span className="text-lg font-extrabold tracking-tight">Pesan Antar</span>
         <nav className="ml-8 hidden gap-6 text-sm font-medium text-stone-600 lg:flex">
-          {[['#cerita', 'Cerita'], ['#fitur', 'Fitur'], ['#ongkir', 'Ongkir'], ['#cara', 'Cara pakai'], ['#faq', 'FAQ']].map(([h, l]) => (
+          {[['#cerita', 'Kenapa'], ['#fitur', 'Fitur'], ['#ongkir', 'Ongkir'], ['#cara', 'Cara pakai'], ['#faq', 'FAQ']].map(([h, l]) => (
             <a key={h} href={h} className="transition-colors hover:text-stone-900">{l}</a>
           ))}
         </nav>
         <div className="ml-auto flex items-center gap-2">
           {hasOrders && <Link to="/pesanan" className="btn-ghost hidden !px-3 sm:inline-flex">Pesanan saya</Link>}
-          <Link to="/seller" className="btn-ghost hidden !px-3 sm:inline-flex">Masuk penjual</Link>
-          <Link to="/download" className="btn-primary !px-4 !py-2"><Icon name="download" className="h-4 w-4" /> Download</Link>
+          <Link to="/download" className="btn-ghost hidden !px-3 sm:inline-flex"><Icon name="download" className="h-4 w-4" /> Download</Link>
+          <Link to="/seller" className="btn-primary !px-4 !py-2">Buka toko gratis</Link>
         </div>
       </div>
     </header>

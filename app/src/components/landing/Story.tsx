@@ -150,17 +150,16 @@ export default function Story() {
     <section id="cerita" className="relative scroll-mt-16 overflow-hidden bg-[#fbf6f0]">
       <div className="mx-auto max-w-5xl px-4 pt-20">
         <Reveal className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-bold tracking-wide text-brand-700 uppercase">Cerita di balik Pesan Antar</p>
+          <p className="text-sm font-bold tracking-wide text-brand-700 uppercase">Kami paham</p>
           <h2 className="mt-3 text-4xl leading-tight font-extrabold tracking-tight md:text-5xl">
-            Dari warung, <span className="text-brand-600">untuk tetangga.</span>
+            Anda melayani tetangga setiap hari. <span className="text-brand-600">Pesan antar seharusnya tidak serumit ini.</span>
           </h2>
           <p className="mt-4 text-lg text-stone-600">
-            Pesan Antar lahir dari pertanyaan sederhana: kenapa warung di ujung gang harus kalah oleh aplikasi besar,
-            padahal pelanggannya cuma lima menit jalan kaki?
+            Kami tahu rasanya membalas chat pesanan sambil melayani pembeli di depan etalase.
           </p>
         </Reveal>
 
-        <Chapter n="01" kicker="Jantung kampung" title="Warung selalu ada saat kita butuh."
+        <Chapter n="01" kicker="Andalan kampung" title="Warung Anda selalu ada saat tetangga butuh."
           visual={
             <div className="grid grid-cols-2 gap-3">
               {([['store', 'Warung kelontong', 'Gas, galon, sembako'], ['bowl', 'Warung makan', 'Nasi, lauk, gorengan'], ['coffee', 'Kopi & angkringan', 'Teman begadang'], ['brick', 'Toko material', 'Paku sampai semen']] as const).map(([ic, t, d], i) => (
@@ -172,33 +171,36 @@ export default function Story() {
               ))}
             </div>
           }>
-          <p>Gas habis jam sembilan malam, anak minta jajan, tukang butuh paku tambahan — yang menolong selalu warung terdekat.</p>
-          <p>Pemiliknya kenal pelanggannya satu per satu. Yang belum ada hanyalah cara mudah untuk <b className="text-stone-800">pesan dari rumah</b>.</p>
+          <p>Gas habis jam sembilan malam, anak minta jajan, tukang butuh paku tambahan — yang menolong selalu warung Anda.</p>
+          <p>Anda kenal pelanggan satu per satu. Yang belum ada hanyalah cara mudah bagi mereka untuk <b className="text-stone-800">pesan dari rumah</b>.</p>
         </Chapter>
 
         <Chapter n="02" kicker="Masalahnya" title="Pesanan antar masih lewat chat yang berantakan." flip visual={<ChatChaos />}>
           <p>Pesanan datang sepotong-sepotong. Jumlah berubah di tengah jalan. Alamat "yang kemarin". Ongkir dihitung kira-kira.</p>
-          <p>Penjual sibuk menyalin ulang ke kertas, pembeli menunggu tanpa kepastian. Satu salah baca, satu pesanan kacau.</p>
+          <p>Ujung-ujungnya Anda yang capek dan was-was: takut salah catat, takut tekor ongkir, sementara pelanggan menunggu tanpa kepastian.</p>
         </Chapter>
 
-        <Chapter n="03" kicker="Pilihan yang ada" title="Aplikasi besar terlalu mahal untuk warung kecil." visual={<CommissionCompare />}>
+        <Chapter n="03" kicker="Tidak adil" title="Untung warung seharusnya tidak habis dipotong komisi." visual={<CommissionCompare />}>
           <p>Aplikasi pesan antar besar memotong komisi dari setiap transaksi. Aplikasi kasir berlangganan bisa ratusan ribu per bulan.</p>
-          <p>Untuk warung dengan untung tipis, hitungannya <b className="text-stone-800">tidak masuk</b>.</p>
+          <p>Untuk warung dengan untung tipis, hitungannya <b className="text-stone-800">tidak masuk</b> — padahal pelanggannya cuma lima menit jalan kaki.</p>
         </Chapter>
 
-        <Chapter n="04" kicker="Jawaban kami" title="Jadi kami buat yang sederhana — dan gratis." flip visual={<CleanOrder />}>
-          <p>Pembeli memilih barang dan menandai rumahnya di peta. Ongkir dihitung otomatis dari jarak, sesuai tarif yang penjual atur sendiri.</p>
-          <p>Pesanan masuk ke HP penjual dengan bunyi — rapi, lengkap, tanpa salin ulang. Uang dibayar langsung ke penjual.</p>
+        <Chapter n="04" kicker="Sekarang giliran Anda" title="Pesanan masuk rapi. Anda tinggal antar." flip visual={<CleanOrder />}>
+          <p>Pelanggan memilih barang dan menandai rumahnya di peta. Ongkir terhitung otomatis sesuai tarif yang Anda atur.</p>
+          <p>Pesanan masuk ke HP Anda dengan bunyi — lengkap, tanpa salin ulang. Pembeli bayar langsung ke Anda.</p>
         </Chapter>
       </div>
 
-      {/* Janji brand */}
+      {/* Rencana kesepakatan: janji untuk warung */}
       <div className="border-t border-stone-200/70 bg-white/60">
-        <div className="mx-auto grid max-w-5xl gap-6 px-4 py-14 md:grid-cols-3">
+        <Reveal className="mx-auto max-w-5xl px-4 pt-12 text-center md:text-left">
+          <p className="text-sm font-bold tracking-wide text-brand-700 uppercase">Janji Pesan Antar untuk warung</p>
+        </Reveal>
+        <div className="mx-auto grid max-w-5xl gap-6 px-4 pt-6 pb-14 md:grid-cols-3">
           {([
-            ['cash', 'Uang utuh untuk warung', 'Tanpa komisi per pesanan. Pembayaran langsung dari pembeli ke penjual.'],
-            ['bolt', 'Ringan di HP & kuota', 'Di bawah 1 MB, tetap bisa dibuka saat sinyal lemah.'],
-            ['shield', 'Adil untuk dua pihak', 'Harga & ongkir dihitung ulang di server — tidak ada yang bisa curang.'],
+            ['cash', 'Tanpa komisi', 'Untung tetap utuh milik Anda. Tidak ada potongan per pesanan.'],
+            ['map', 'Tarif ongkir Anda yang atur', 'Gratis, per order, atau per km. Sistem yang menghitung.'],
+            ['wallet', 'Pembeli bayar langsung ke Anda', 'Tunai atau transfer ke rekening Anda. Uang tidak lewat kami.'],
           ] as const).map(([ic, t, d], i) => (
             <Reveal key={t} delay={i * 110} className="flex gap-4">
               <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-stone-900 text-white"><Icon name={ic} className="h-6 w-6" /></span>
